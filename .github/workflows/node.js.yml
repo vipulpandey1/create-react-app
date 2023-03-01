@@ -1,50 +1,30 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
+on:
+  push:
+    branches:
+      - master
+The final .github/workflows/github-actions-ec2.yml should looks like the following
 
 name: Push-to-EC2
 
-# Trigger deployment only on push to development branch
+# Trigger deployment only on push to master branch
 on:
   push:
-    branches: [ master ]
+    branches:
+      - master
 
 jobs:
   deploy:
-    name: Deploy to EC2 
+    name: Deploy to EC2 on master branch push
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout the files
         uses: actions/checkout@v2
-        
-      - name: multiple command
-        uses: appleboy/ssh-action@master
-        env:
-            BRANCH: ${{ github.ref_name }}
-            BUILD_NUMBER: ${{ github.run_number }}
-            REACT_APP_PERSONA_TEMPLATE_ID: ${{ secrets.REACT_APP_PERSONA_TEMPLATE_ID }}
-            REACT_APP_PERSONA_PERSONA_ENV: ${{ secrets.REACT_APP_PERSONA_PERSONA_ENV }}
-            REACT_APP_AUTH_BASE_URL: ${{ secrets.REACT_APP_AUTH_BASE_URL }}
-            REACT_APP_USER_BASE_URL: ${{ secrets.REACT_APP_USER_BASE_URL }}
-            REACT_APP_PAYMENT_BASE_URL: ${{ secrets.REACT_APP_PAYMENT_BASE_URL }}
-            REACT_APP_MARKETING_URL: ${{ secrets.REACT_APP_MARKETING_URL }}
-        with:
-          host: ${{ secrets.HOST_DNS }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          port: ${{ secrets.SSH_PORT }}
-          script_stop: true
-          envs: BRANCH, BUILD_NUMBER, REACT_APP_PERSONA_TEMPLATE_ID, REACT_APP_PERSONA_PERSONA_ENV,  REACT_APP_AUTH_BASE_URL, REACT_APP_USER_BASE_URL, REACT_APP_PAYMENT_BASE_URL, REACT_APP_MARKETING_URL
-          script: |
-            pwd
-            cd mogul-mvp-investor-react/
-            git switch $BRANCH
-            git branch
-            git pull
-            sudo docker build -t mogul-mvp-investor-react:$BUILD_NUMBER .
-            sudo docker stop mogul-mvp-investor-react || true
-            sudo docker rm  mogul-mvp-investor-react || true
-            sudo docker run -d --name mogul-mvp-investor-react -p 83:3000 -e REACT_APP_PERSONA_TEMPLATE_ID=$REACT_APP_PERSONA_TEMPLATE_ID -e REACT_APP_PERSONA_PERSONA_ENV=$REACT_APP_PERSONA_PERSONA_ENV -e REACT_APP_AUTH_BASE_URL=$REACT_APP_AUTH_BASE_URL -e REACT_APP_USER_BASE_URL=$REACT_APP_USER_BASE_URL -e REACT_APP_PAYMENT_BASE_URL=$REACT_APP_PAYMENT_BASE_URL -e REACT_APP_MARKETING_URL=$REACT_APP_MARKETING_URL  mogul-mvp-investor-react:$BUILD_NUMBER
-            sudo docker system prune -a -f
 
- 
+      - name: Deploy to Server 1
+        uses: easingthemes/ssh-deploy@main
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
+          REMOTE_HOST: ${{ secrets.HOST_DNS }}
+          REMOTE_USER: ${{ secrets.USERNAME }}
+          TARGET: ${{ secrets.TARGET_DIR }}
