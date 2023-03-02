@@ -29,7 +29,7 @@ jobs:
           envs: BRANCH, BUILD_NUMBER
           script: |
             pwd
-            cd product-compare-react/
+            cd create-react-app/
             sudo docker build -t product-compare-react:$BUILD_NUMBER .
             sudo docker stop product-compare-react || true
             sudo docker rm  product-compare-react || true
